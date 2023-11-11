@@ -47,14 +47,24 @@ const Page = () => {
 
   const getSpecies = async (id) => {
     const URL = "https://pokeapi.co/api/v2";
-    const res = await axios.get(`${URL}/pokemon-species/${id}`);
+    const res = await axios.get(`${URL}/pokemon-species/${id}`, {
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
     const data = res.data;
     return data.evolution_chain.url;
   };
 
   const getEvolutions = async (id) => {
     const url = await getSpecies(id);
-    const res = await axios.get(url);
+    const res = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
     const data = res.data;
 
     let pokemonEvoArray = [];
@@ -81,7 +91,12 @@ const Page = () => {
 
   const getPokemonImgs = async (name) => {
     const URL = "https://pokeapi.co/api/v2";
-    const res = await axios.get(`${URL}/pokemon/${name}`);
+    const res = await axios.get(`${URL}/pokemon/${name}`, {
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
     const data = res.data;
     return data.sprites.other["dream_world"].front_default;
   };

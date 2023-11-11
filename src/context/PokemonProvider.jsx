@@ -48,12 +48,23 @@ const PokemonProvider = ({ children }) => {
       const URL = "https://pokeapi.co/api/v2";
 
       const res = await axios.get(
-        `${URL}/pokemon?limit=${limit}&offset=${offset}`
+        `${URL}/pokemon?limit=${limit}&offset=${offset}`,
+        {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
       );
       const pokemons = res.data.results;
 
       const promises = pokemons.map(async (pokemon) => {
-        const res = await axios.get(pokemon.url);
+        const res = await axios.get(pokemon.url, {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
         return res.data;
       });
 
@@ -74,14 +85,25 @@ const PokemonProvider = ({ children }) => {
     const URL = "https://pokeapi.co/api/v2";
 
     const res = await axios.get(
-      `${URL}/pokemon?limit=${limit}&offset=${offset}`
+      `${URL}/pokemon?limit=${limit}&offset=${offset}`,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
     );
     const pokemons = res.data.results;
 
     const pokemonDetails = [];
 
     const promises = pokemons.map(async (pokemon) => {
-      const res = await axios.get(pokemon.url);
+      const res = await axios.get(pokemon.url, {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
 
       return res.data;
     });
@@ -107,16 +129,32 @@ const PokemonProvider = ({ children }) => {
     const URL = "https://pokeapi.co/api/v2";
 
     try {
-      const res = await axios.get(`${URL}/pokemon/${id}`);
+      const res = await axios.get(`${URL}/pokemon/${id}`, {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
       const pokemon = res.data;
 
-      const evolutionRes = await axios.get(`${URL}/evolution-chain/${id}`);
+      const evolutionRes = await axios.get(`${URL}/evolution-chain/${id}`, {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
       const evolutionData = evolutionRes.data;
 
       let characteristicData;
       try {
         const characteristicRes = await axios.get(
-          `${URL}/characteristic/${id}`
+          `${URL}/characteristic/${id}`,
+          {
+            headers: {
+              "Content-Type": "application/json;charset=UTF-8",
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
         );
         characteristicData = characteristicRes.data;
       } catch (characteristicError) {
@@ -134,7 +172,12 @@ const PokemonProvider = ({ children }) => {
         }
       }
 
-      const speciesRes = await axios.get(pokemon.species.url);
+      const speciesRes = await axios.get(pokemon.species.url, {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
       const speciesData = speciesRes.data;
       const eggGroups = speciesData.egg_groups;
 
@@ -146,7 +189,12 @@ const PokemonProvider = ({ children }) => {
             : speciesData.gender_rate === 0
             ? 0
             : 1;
-        const genderRes = await axios.get(`${URL}/gender/${genderId}`);
+        const genderRes = await axios.get(`${URL}/gender/${genderId}`, {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
         genderData = genderRes.data;
       } catch (genderError) {
         if (genderError.response && genderError.response.status === 404) {
@@ -156,7 +204,12 @@ const PokemonProvider = ({ children }) => {
         }
       }
 
-      const movesRes = await axios.get(`${URL}/move/${id}`);
+      const movesRes = await axios.get(`${URL}/move/${id}`, {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
       const movesData = movesRes.data;
 
       pokemon.evolutionData = evolutionData;
