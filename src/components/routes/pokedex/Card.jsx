@@ -14,11 +14,13 @@ const Card = ({ pokemon }) => {
   return (
     <Link
       to={`/pokedex/pokemon/${pokemon.id}`}
-      className="w-full shadow-lg h-[100px] rounded-2xl py-4 px-3 flex justify-between gap-4 relative overflow-hidden"
+      className="w-full shadow-lg h-[100px] max-xs:h-[150px] rounded-2xl py-4 px-3 flex max-xs:flex-col justify-between gap-4 relative overflow-hidden"
       style={{
         backgroundColor,
       }}
     >
+      <img src={pokeball} className="absolute opacity-25 -top-14 -left-16" alt="" />
+
       <div className="flex flex-col">
         <h1 className="font-bold font-body capitalize text-white text-base">
           {pokemon.name}

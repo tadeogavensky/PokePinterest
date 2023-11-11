@@ -11,7 +11,7 @@ const SideMenu = () => {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: "100vw", opacity: 0 }}
       transition={{ duration: 0.5, type: "spring", stiffness: 120 }}
-      className="bg-white shadow-xl border-[1px] w-[300px] rounded-xl  p-4 z-50 absolute top-32 right-8  "
+      className="bg-white shadow-xl border-[1px] w-[200px] rounded-xl  p-4 z-50 absolute top-32 right-10  "
     >
       <ul className="flex flex-col gap-2">
         <Link

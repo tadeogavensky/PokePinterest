@@ -27,7 +27,7 @@ const Home = () => {
     <div className="min-h-screen flex flex-col relative px-8 pt-12 overflow-hidden">
       <img
         src={pokeballGray}
-        className="w-[100%] absolute opacity-10 -top-[12%] left-[45%] "
+        className="w-[100%] fixed opacity-10 -top-[20%] left-[45%] "
         alt=""
       />
       <div className="flex items-center justify-between">

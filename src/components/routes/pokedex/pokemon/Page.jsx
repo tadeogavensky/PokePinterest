@@ -2,10 +2,23 @@ import React, { useContext, useEffect, useState } from "react";
 import { PokemonContext } from "../../../../context/PokemonContext";
 import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../../Loader";
-import { IoArrowBack } from "react-icons/io5";
+import {
+  IoArrowBack,
+  IoArrowForward,
+  IoFemaleSharp,
+  IoMale,
+} from "react-icons/io5";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { motion } from "framer-motion";
 import typeColors from "../../../../utils/typeColors";
+import axios from "axios";
+import pokeball from "../../../../assets/images/pokeball-gray.png";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/effect-coverflow";
+import "swiper/css/navigation";
+
 const Page = () => {
   const navigate = useNavigate();
 
@@ -15,6 +28,7 @@ const Page = () => {
 
   const [loading, setLoading] = useState(true);
   const [pokemon, setPokemon] = useState({});
+  const [pokemonEvolutions, setPokemonEvolutions] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false);
 
   const [activeTab, setActiveTab] = useState("about");
@@ -25,25 +39,57 @@ const Page = () => {
   const getPokemon = async (id) => {
     const res = await getPokemonById(id);
     setPokemon(res);
-
     const favorites = JSON.parse(localStorage.getItem("pokeFavs")) || [];
     setIsFavorite(favorites.some((fav) => fav.id === res.id));
 
     setLoading(false);
   };
 
-  useEffect(() => {
-    getPokemon(id);
-  }, []);
-
-  const menus = {
-    about: <About pokemon={pokemon} />,
-    baseStats: <BaseStats pokemon={pokemon} />,
-    evolution: <Evolution pokemon={pokemon} />,
-    moves: <Moves pokemon={pokemon} />,
+  const getSpecies = async (id) => {
+    const URL = "https://pokeapi.co/api/v2";
+    const res = await axios.get(`${URL}/pokemon-species/${id}`);
+    const data = res.data;
+    return data.evolution_chain.url;
   };
 
-  const renderMenu = menus[activeTab];
+  const getEvolutions = async (id) => {
+    const url = await getSpecies(id);
+    const res = await axios.get(url);
+    const data = res.data;
+
+    let pokemonEvoArray = [];
+    let pokemonLv1 = data.chain.species.name;
+    let pokemonLv1Img = await getPokemonImgs(pokemonLv1);
+
+    pokemonEvoArray.push([pokemonLv1, pokemonLv1Img]);
+
+    if (data.chain.evolves_to.length !== 0) {
+      let pokemonLv2 = data.chain.evolves_to[0].species.name;
+
+      let pokemonLv2Img = await getPokemonImgs(pokemonLv2);
+
+      pokemonEvoArray.push([pokemonLv2, pokemonLv2Img]);
+
+      if (data.chain.evolves_to[0].evolves_to.length !== 0) {
+        let pokemonLv3 = data.chain.evolves_to[0].evolves_to[0].species.name;
+        let pokemonLv3Img = await getPokemonImgs(pokemonLv3);
+        pokemonEvoArray.push([pokemonLv3, pokemonLv3Img]);
+      }
+    }
+    setPokemonEvolutions(pokemonEvoArray);
+  };
+
+  const getPokemonImgs = async (name) => {
+    const URL = "https://pokeapi.co/api/v2";
+    const res = await axios.get(`${URL}/pokemon/${name}`);
+    const data = res.data;
+    return data.sprites.other["dream_world"].front_default;
+  };
+
+  useEffect(() => {
+    getPokemon(id);
+    getEvolutions(id);
+  }, []);
 
   const backgroundColor =
     pokemon.types && pokemon.types.length > 0
@@ -54,6 +100,19 @@ const Page = () => {
     pokemon.id < 10 ? "00" : pokemon.id < 100 ? "0" : ""
   }${pokemon.id}`;
 
+  const menus = {
+    about: <About pokemon={pokemon} />,
+    baseStats: <BaseStats pokemon={pokemon} />,
+    evolution: (
+      <Evolution
+        pokemonEvolutions={pokemonEvolutions}
+        backgroundColor={backgroundColor}
+      />
+    ),
+    moves: <Moves pokemon={pokemon} />,
+  };
+
+  const renderMenu = menus[activeTab];
   return (
     <div>
       {loading ? (
@@ -76,10 +135,9 @@ const Page = () => {
                     if (isFavorite) {
                       removeFromFavorites(pokemon);
                     } else {
-                      // Add to favorites
                       addToFavorites(pokemon);
                     }
-                    setIsFavorite(!isFavorite); // Toggle the state
+                    setIsFavorite(!isFavorite);
                   }}
                 >
                   {isFavorite ? (
@@ -128,7 +186,7 @@ const Page = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.3 }}
               src={pokemon.sprites.other.dream_world.front_default}
-              className="absolute bottom-[40%] z-10 left-[30%] sm:left-[35%] w-[40%] sm:w-[25%]"
+              className="absolute bottom-[20%] z-10 left-[30%] sm:left-[35%] w-[40%] sm:w-[25%]"
             />
             <motion.div
               initial={{ opacity: 0, y: "200vh" }}
@@ -140,9 +198,9 @@ const Page = () => {
                 <motion.li
                   className={`${
                     activeTab === "about"
-                      ? "text-black border-b-2 border-black pb-4 "
+                      ? "text-gray-900 border-b-2 border-black pb-4 "
                       : ""
-                  } text-gray-400 font-body font-bold pb-4`}
+                  } text-gray-400 font-body font-bold pb-4 text-sm cursor-pointer`}
                   onClick={() => switchTab("about")}
                   whileTap={{ scale: 0.95 }}
                   transition={{ borderBottom: { duration: 0.3 } }}
@@ -152,9 +210,9 @@ const Page = () => {
                 <motion.li
                   className={`${
                     activeTab === "baseStats"
-                      ? "text-black border-b-2 border-black pb-4 "
+                      ? "text-gray-900 border-b-2 border-black pb-4 "
                       : ""
-                  } text-gray-400 font-body font-bold pb-4`}
+                  } text-gray-400 font-body font-bold pb-4 text-sm cursor-pointer`}
                   onClick={() => switchTab("baseStats")}
                   whileTap={{ scale: 0.95 }}
                   transition={{ borderBottom: { duration: 0.3 } }}
@@ -164,9 +222,9 @@ const Page = () => {
                 <motion.li
                   className={`${
                     activeTab === "evolution"
-                      ? "text-black border-b-2 border-black pb-4 "
+                      ? "text-gray-900 border-b-2 border-black pb-4 "
                       : ""
-                  } text-gray-400 font-body font-bold pb-4`}
+                  } text-gray-400 font-body font-bold pb-4 text-sm cursor-pointer`}
                   onClick={() => switchTab("evolution")}
                   whileTap={{ scale: 0.95 }}
                   transition={{ borderBottom: { duration: 0.3 } }}
@@ -176,9 +234,9 @@ const Page = () => {
                 <motion.li
                   className={`${
                     activeTab === "moves"
-                      ? "text-black border-b-2 border-black pb-4 "
+                      ? "text-gray-900 border-b-2 border-black pb-4 "
                       : ""
-                  } text-gray-400 font-body font-bold pb-4`}
+                  } text-gray-400 font-body font-bold pb-4 text-sm cursor-pointer`}
                   onClick={() => switchTab("moves")}
                   whileTap={{ scale: 0.95 }}
                   transition={{ borderBottom: { duration: 0.3 } }}
@@ -204,6 +262,10 @@ const About = ({ pokemon }) => {
       transition={{ duration: 0.2 }}
       className="flex flex-col items-start justify-start gap-4 mt-6"
     >
+      <h3 className="font-body font-semibold text-2xl">
+        {pokemon.characteristics.descriptions &&
+          pokemon.characteristics.descriptions[7].description}
+      </h3>
       <div className="flex items-center gap-8">
         <h2 className="text-gray-400 font-body">Height</h2>
         <p className="font-body font-semibold">{pokemon.height} inches</p>
@@ -231,6 +293,16 @@ const About = ({ pokemon }) => {
       <div className="flex flex-col justify-start gap-4">
         <div className="flex items-center gap-8">
           <h2 className="text-gray-400 font-body">Gender</h2>
+          <div className="flex items-center gap-1">
+            {pokemon.gender.name === "female" ? (
+              <IoFemaleSharp color="#FF99C8" />
+            ) : (
+              <IoMale color="#A9DEF9" />
+            )}
+            <p className="font-body font-semibold capitalize">
+              {pokemon.gender.name}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-8">
           <h2 className="text-gray-400 font-body">Egg Groups</h2>
@@ -238,16 +310,13 @@ const About = ({ pokemon }) => {
             {pokemon.eggGroups.map((eggGroup, index) => {
               return (
                 <p key={index} className="font-body font-semibold capitalize">
-                  {index === pokemon.abilities.length - 1
+                  {index === pokemon.eggGroups.length - 1
                     ? eggGroup.name
                     : `${eggGroup.name}, `}
                 </p>
               );
             })}
           </div>
-        </div>
-        <div className="flex items-center gap-8">
-          <h2 className="text-gray-400 font-body">Egg Cycle</h2>
         </div>
       </div>
     </motion.div>
@@ -339,27 +408,7 @@ const BaseStats = ({ pokemon }) => {
   );
 };
 
-const Evolution = ({ pokemon }) => {
-  /*  const evolutionChain = pokemon.evolutionData.chain;
-
-  const processEvolutionChain = (chain) => {
-    const results = [];
-
-    const { species, evolution_details } = chain;
-    const speciesName = species.name;
-
-    results.push(speciesName);
-
-    if (chain.evolves_to && chain.evolves_to.length > 0) {
-      chain.evolves_to.forEach((nextEvolution) => {
-        results.push(...processEvolutionChain(nextEvolution));
-      });
-    }
-
-    return results;
-  };
-
-  const evolutionResults = processEvolutionChain(evolutionChain); */
+const Evolution = ({ pokemonEvolutions, backgroundColor }) => {
   return (
     <motion.div
       initial={{ x: "-100vw", opacity: 0 }}
@@ -368,14 +417,34 @@ const Evolution = ({ pokemon }) => {
       className="mt-6"
     >
       <h1 className="text-2xl font-body font-extrabold">Evolution Chain</h1>
+      <Swiper
+        grabCursor={true}
+        centeredSlides={true}
+        slidesPerView={"auto"}
+        spaceBetween={30}
+        className="w-full p-12"
+      >
+        {pokemonEvolutions.map((pokemon, index) => {
+          const [pokemonName, pokemonImage] = pokemon;
 
-      {/* <ul>
-        {evolutionResults.map((speciesName, index) => (
-          <li key={index} className="font-body">
-            {speciesName}
-          </li>
-        ))}
-      </ul> */}
+          return (
+            <SwiperSlide
+              key={index}
+              className="flex flex-col gap-4 items-center h-[300px] w-[250px] justify-center shadow-lg rounded-2xl"
+              style={{ backgroundColor: backgroundColor }}
+            >
+              <img
+                src={pokemonImage}
+                className="w-[80%] z-10 object-cover"
+                alt={pokemonName}
+              />
+              <h1 className="font-bold whitespace-nowrap capitalize font-body text-white">
+                {pokemonName}
+              </h1>
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
     </motion.div>
   );
 };

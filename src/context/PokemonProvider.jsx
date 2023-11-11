@@ -106,24 +106,71 @@ const PokemonProvider = ({ children }) => {
   const getPokemonById = async (id) => {
     const URL = "https://pokeapi.co/api/v2";
 
-    const res = await axios.get(`${URL}/pokemon/${id}`);
-    const pokemon = res.data;
+    try {
+      const res = await axios.get(`${URL}/pokemon/${id}`);
+      const pokemon = res.data;
 
-    const evolutionRes = await axios.get(`${URL}/evolution-chain/${id}`);
-    const evolutionData = evolutionRes.data;
+      const evolutionRes = await axios.get(`${URL}/evolution-chain/${id}`);
+      const evolutionData = evolutionRes.data;
 
-    const speciesRes = await axios.get(pokemon.species.url);
-    const speciesData = speciesRes.data;
-    const eggGroups = speciesData.egg_groups;
+      let characteristicData;
+      try {
+        const characteristicRes = await axios.get(
+          `${URL}/characteristic/${id}`
+        );
+        characteristicData = characteristicRes.data;
+      } catch (characteristicError) {
+        if (
+          characteristicError.response &&
+          characteristicError.response.status === 404
+        ) {
+          console.error(
+            "Characteristic not found:",
+            characteristicError.message
+          );
+          characteristicData = {};
+        } else {
+          throw characteristicError;
+        }
+      }
 
-    const movesRes = await axios.get(`${URL}/move/${id}`);
-    const movesData = movesRes.data;
+      const speciesRes = await axios.get(pokemon.species.url);
+      const speciesData = speciesRes.data;
+      const eggGroups = speciesData.egg_groups;
 
-    pokemon.evolutionData = evolutionData;
-    pokemon.eggGroups = eggGroups;
-    pokemon.moves = movesData;
+      let genderData;
+      try {
+        const genderId =
+          speciesData.gender_rate === -1
+            ? 3
+            : speciesData.gender_rate === 0
+            ? 0
+            : 1;
+        const genderRes = await axios.get(`${URL}/gender/${genderId}`);
+        genderData = genderRes.data;
+      } catch (genderError) {
+        if (genderError.response && genderError.response.status === 404) {
+          genderData = {};
+        } else {
+          throw genderError;
+        }
+      }
 
-    return pokemon;
+      const movesRes = await axios.get(`${URL}/move/${id}`);
+      const movesData = movesRes.data;
+
+      pokemon.evolutionData = evolutionData;
+      pokemon.eggGroups = eggGroups;
+      pokemon.moves = movesData;
+      pokemon.characteristics = characteristicData;
+      pokemon.gender = genderData;
+
+      return pokemon;
+    } catch (error) {
+      console.error("Error fetching Pokemon data:", error);
+      // Handle the error appropriately
+      throw error; // Rethrow the error or handle it based on your use case
+    }
   };
 
   const filterPokemons = () => {
@@ -149,14 +196,9 @@ const PokemonProvider = ({ children }) => {
 
     if (searchedPokemons.length === 0 || query.trim() === "") {
       getAllPokemons();
-      return;
     }
 
-    console.log("searchedPokemons :>> ", searchedPokemons);
-
-    const updatedGlobalPokemons = [...searchedPokemons];
-
-    setGlobalPokemons(updatedGlobalPokemons);
+    setGlobalPokemons(searchedPokemons);
   };
 
   const addToFavorites = (pokemon) => {

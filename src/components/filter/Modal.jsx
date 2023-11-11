@@ -24,7 +24,7 @@ const Modal = () => {
       initial={{ opacity: 0, x: "-100vw" }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: "-100vw" }}
-      className="h-fit bg-white rounded-2xl w-[250px] z-50 shadow-md border-2 absolute p-4 bottom-12 right-20"
+      className="h-fit bg-white rounded-2xl w-[250px] z-50 shadow-md border-2 absolute p-4 bottom-0 right-20"
     >
       <div className="flex w-full justify-end">
         <button
